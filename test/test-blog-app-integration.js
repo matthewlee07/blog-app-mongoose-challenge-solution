@@ -134,7 +134,26 @@ describe('Blog Post API testing', function () {
   //});
   describe('PUT endpoint', function(){
     it('should update new blog post data', function(){
-
+      const updateData = {
+        title: 'new test',
+        content: 'This is new testing'
+      };
+      return BlogPost
+        .findOne()
+        .then(function(blogpost){
+          updateData.id = blogpost.id;
+          return chai.request(app)
+            .put(`/posts/${blogpost.id}`)
+            .send(updateData);
+        })
+        .then(function(res){
+          res.should.have.status(204);
+          return BlogPost.findById(updateData.id);
+        })
+        .then(function(blogpost){
+          blogpost.title.should.equal(updateData.title);
+          blogpost.content.should.equal(updateData.content);
+        });
     });
   });
   // describe('DELETE endpoint', function(){
