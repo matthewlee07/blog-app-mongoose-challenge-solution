@@ -1,3 +1,4 @@
+'use strict';
 const express = require('express');
 const mongoose = require('mongoose');
 const chai = require('chai');
@@ -37,7 +38,7 @@ function tearDownDb(){
 
 describe('Blog Post API testing', function(){
   before(function(){
-    return runServer(TEST_DATABASE_URL);
+    return runServer(TEST_DATABASE_URL, 8888);
   });
 
   beforeEach(function(){
@@ -57,43 +58,64 @@ describe('Blog Post API testing', function(){
       let res;
       return chai.request(app)
         .get('/posts')
-        .then(function(res){
+        .then(function(_res){
+          res = _res;
           res.should.have.status(200);
+          //console.log(res.body);
+          res.body.should.have.length.of.at.least(1);
+          return BlogPost.count();
+        })
+        .then(function(count){
+          //console.log(res.body);
+         // console.log(count);
+          // res.body.should.have.length.of(count);
+          // res.body.length.should.equal(count);
+          res.body.should.have.lengthOf(count);
+        });
+    });
+    it('should return posts with right fileds', function(){
+      let resPost;
+      return chai.request(app)
+        .get('/posts')
+        .then(function(res){
+          res.should.have.status(200);        
           res.should.be.json;
-          res.body.posts.should.be.a('array');
-          res.body.posts.should.have.length.of.at.least(1);
+          res.body.should.be.a('array');
+          res.body.should.have.length.of.at.least(1);
 
-          res.body.posts.forEach(function(post) {
+          res.body.forEach(function(post) {
             post.should.be.a('object');
             post.should.include.keys(
               'title', 'author', 'content');
           });
-          resPost = res.body.posts[0];
+          resPost = res.body[0];
           return BlogPost.findById(resPost.id);
         })
         .then(function(post){
-          resPost.author.should.equal(post.author);
+          console.log('logging respost author', resPost.author);
+          console.log('logging post author', post.author);
+          resPost.author.should.equal(post.author.firstName+' '+post.author.lastName);
           resPost.content.should.equal(post.content);
           resPost.title.should.equal(post.title);
         });
     });
   });
   
-  describe('POST endpoint', function(){
-    it('should insert new blog post data', function(){
+  // describe('POST endpoint', function(){
+  //   it('should insert new blog post data', function(){
 
-    });
-  });
-  describe('PUT endpoint', function(){
-    it('should update new blog post data', function(){
+  //   });
+  // });
+  // describe('PUT endpoint', function(){
+  //   it('should update new blog post data', function(){
 
-    });
-  });
-  describe('DELETE endpoint', function(){
-    it('should delete specific data', function(){
+  //   });
+  // });
+  // describe('DELETE endpoint', function(){
+  //   it('should delete specific data', function(){
 
-    });
-  });
+  //   });
+  // });
 
 
-})
+});
